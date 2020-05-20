@@ -1,0 +1,56 @@
+Benim Algoritma2 Sorum  
+ 
+1)Programcı Ali, ekrana sırasıyla A ve B yazdırma için aşağıdaki kodu yazıyor. (örneğin ekranda “ABABABAB” görmek istiyor). Aşağıdaki kodda, lifler (thread) açısından oluşan problemleri/eksikleri tanımlayınız ve kodu çalışır hale getiriniz. ? 
+ 
+ 
+Dikkat edilecek hususlar: extends eden sınıf doğrudan start() edilebilirken implements eden sınıf öncelikle Thread’in yapıcı fonksiyonuna (constructor) parametre verilmeli ardından Thread start() edilmelidir. İki thread arasında ortak bir değişken kullanılarak senkranizasyon yapılabilmesi için paylaşılmış bir değişkene (shared variable) ihtiyaç duyulur. Oysaki yazılan hatalı kodda (yukarda) her sınıf için yeniden bir değişken tanımlanmıştır. Bu durumda iki farklı değişken bulunacak ve birbiri ile ilgisi kalmayacaktır. Soruda istenilen senkranizasyon sonucunda ABABA şeklinde bir çalışma beklenmektedir. Oysaki soruda x değişkeni öncelikle 1 olarak atanmıştır. Bu değerin 0 olarak başlaması gerekir. Senkranizasyon için sınıflardan birisi 0 diğeri 1 durumunda çalışmalıdır. Hatalı kodda ikisi de aynı durumda beklemektedir. Bu durum ölümcül kilitlenmedir (deadlock). Senkranizasyon sonucunda liflerin (threads) tekrar tekrar çalışabilmesi için sırayı diğer life(thread) geçirmesi gerekir. Bu durumda 1 bekleyen lif, işi bittikten sonra 0, 0 bekleyen lif ise işi bittikten sonra 1 bekleyen lifi uyandırmalıdır. 
+ 
+ 
+Çözüm: 
+ 
+class A extends Thread{ 
+ test x; 
+ public A(test x){ 
+  this.x = x; 
+ } 
+ public void run(){ 
+  while(true){ 
+   while(x.x==1){ 
+     try{ 
+         Thread.sleep(100); 
+       }catch(Exception e){} 
+   } 
+   System.out.print("A"); 
+   x.x=1; 
+  } 
+ } 
+} 
+class B implements Runnable{ 
+ test x; 
+ public B(test x){ 
+  this.x = x; 
+ } 
+ public void run(){ 
+  while(true){ 
+   while(x.x==0){ 
+       try{ 
+    Thread.sleep(100); 
+       }catch(Exception e){} 
+   } 
+   System.out.print("B"); 
+   x.x=0; 
+  } 
+ } 
+} 
+public class test{ 
+ public int x=0; 
+ public static void main(String args[]){ 
+ 
+  test p = new test(); 
+  A a = new A(p); 
+  B b = new B(p); 
+  Thread t = new Thread (b); 
+  a.start(); 
+  t.start(); 
+ } 
+} 
